@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Pqrs;
 use App\Models\PqrsResponse;
 use App\Models\Notification;
+use App\Mail\PqrsResponseMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -60,7 +62,7 @@ class PqrsController extends Controller
 
         $pqrs->update(['status' => $validated['status']]);
 
-        // Notificar al usuario
+        // Notificar al usuario en BD
         Notification::create([
             'id'         => Str::uuid(),
             'user_id'    => $pqrs->user_id,
@@ -69,6 +71,12 @@ class PqrsController extends Controller
             'read'       => false,
             'created_at' => now(),
         ]);
+
+        // Enviar email al usuario
+        if ($pqrs->user) {
+            Mail::to($pqrs->user->email)
+                ->send(new PqrsResponseMail($pqrs, $validated['response']));
+        }
 
         return back()->with('success', 'Respuesta enviada correctamente.');
     }

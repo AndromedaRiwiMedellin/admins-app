@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Favorite;
 use App\Models\Notification;
+use App\Mail\EventUpdatedMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,8 +15,17 @@ class EventController extends Controller
 {
     public function index()
     {
+        $stats = [
+            'total'    => Event::count(),
+            'active'   => Event::where('sale_start', '<=', now())
+                            ->where('sale_end', '>=', now())->count(),
+            'upcoming' => Event::where('event_date', '>=', now())->count(),
+            'past'     => Event::where('event_date', '<', now())->count(),
+        ];
+
         $events = Event::orderByDesc('event_date')->paginate(12);
-        return view('events.index', compact('events'));
+
+        return view('events.index', compact('events', 'stats'));
     }
 
     public function create()
@@ -73,11 +84,10 @@ class EventController extends Controller
             'poster'         => 'nullable|image|max:2048',
         ]);
 
-        // Detectar si cambió algo importante para notificar favoritos
-        $changed = $event->title        !== $validated['title'] ||
-                   $event->event_date   !== $validated['event_date'] ||
-                   $event->sale_start   !== $validated['sale_start'] ||
-                   $event->sale_end     !== $validated['sale_end'];
+        $changed = $event->title      !== $validated['title'] ||
+                   $event->event_date !== $validated['event_date'] ||
+                   $event->sale_start !== $validated['sale_start'] ||
+                   $event->sale_end   !== $validated['sale_end'];
 
         if ($request->hasFile('poster')) {
             if ($event->poster_url) {
@@ -88,7 +98,6 @@ class EventController extends Controller
 
         $event->update($validated);
 
-        // Notificar a usuarios que tienen el evento en favoritos
         if ($changed) {
             $this->notifyFavoriteUsers($event);
         }
@@ -123,6 +132,7 @@ class EventController extends Controller
         foreach ($favorites as $favorite) {
             if (!$favorite->user) continue;
 
+            // Guardar notificación en BD
             Notification::create([
                 'id'         => Str::uuid(),
                 'user_id'    => $favorite->user_id,
@@ -131,6 +141,10 @@ class EventController extends Controller
                 'read'       => false,
                 'created_at' => now(),
             ]);
+
+            // Enviar email
+            Mail::to($favorite->user->email)
+                ->send(new EventUpdatedMail($event, $favorite->user));
         }
     }
 }
