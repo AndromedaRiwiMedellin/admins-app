@@ -2,102 +2,103 @@
 @section('title', 'Dashboard')
 
 @section('topbar-actions')
-    <span style="font-size:13px; color:var(--muted);">{{ now()->format('d M Y') }}</span>
+    <span class="text-sm text-gray-400">{{ now()->format('d M Y') }}</span>
 @endsection
 
 @section('content')
 
 {{-- Stats --}}
-<div class="grid-4" style="margin-bottom: 24px;">
-    <div class="stat-card">
-        <div class="stat-label">Eventos este mes</div>
-        <div class="stat-value">{{ $stats['events_this_month'] }}</div>
-        <div class="stat-sub">En cartelera</div>
+<div class="grid grid-cols-4 gap-3 mb-6">
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+        <p class="text-xs text-gray-400 mb-2">Eventos este mes</p>
+        <p class="text-2xl font-medium text-[#001A6E]">{{ $stats['events_this_month'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">En cartelera</p>
     </div>
-    <div class="stat-card">
-        <div class="stat-label">Boletas esta semana</div>
-        <div class="stat-value">{{ $stats['tickets_this_week'] }}</div>
-        <div class="stat-sub">Online + taquilla</div>
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+        <p class="text-xs text-gray-400 mb-2">Boletas esta semana</p>
+        <p class="text-2xl font-medium text-[#001A6E]">{{ $stats['tickets_this_week'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Online + taquilla</p>
     </div>
-    <div class="stat-card">
-        <div class="stat-label">PQRS pendientes</div>
-        <div class="stat-value" style="color: {{ $stats['pending_pqrs'] > 0 ? 'var(--warning)' : 'var(--lime)' }}">
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+        <p class="text-xs text-gray-400 mb-2">PQRS pendientes</p>
+        <p class="text-2xl font-medium {{ $stats['pending_pqrs'] > 0 ? 'text-amber-500' : 'text-[#009990]' }}">
             {{ $stats['pending_pqrs'] }}
-        </div>
-        <div class="stat-sub">Sin respuesta</div>
+        </p>
+        <p class="text-xs text-gray-400 mt-1">Sin respuesta</p>
     </div>
-    <div class="stat-card">
-        <div class="stat-label">Usuarios registrados</div>
-        <div class="stat-value">{{ $stats['total_users'] }}</div>
-        <div class="stat-sub">Total acumulado</div>
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+        <p class="text-xs text-gray-400 mb-2">Usuarios registrados</p>
+        <p class="text-2xl font-medium text-[#001A6E]">{{ $stats['total_users'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Total acumulado</p>
     </div>
 </div>
 
 {{-- Contenido principal --}}
-<div class="grid-2">
+<div class="grid grid-cols-2 gap-4">
 
     {{-- Próximos eventos --}}
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:15px; font-weight:600;">Próximos eventos</h2>
-            <a href="{{ route('events.create') }}" class="btn btn-accent" style="padding:6px 12px; font-size:12px;">+ Nuevo</a>
+    <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-medium text-gray-800">Próximos eventos</h2>
+            <a href="{{ route('events.create') }}"
+               class="bg-[#009990] hover:bg-[#007a74] text-[#E1FFBB] text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                + Nuevo
+            </a>
         </div>
 
         @forelse($upcomingEvents as $event)
-            <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
-                <div style="background:rgba(0,153,144,0.12); border-radius:8px; padding:8px 12px; text-align:center; min-width:52px;">
-                    <div style="font-size:18px; font-weight:700; color:var(--accent2); font-family:'Syne',sans-serif;">
+            <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div class="bg-[#009990]/10 rounded-lg px-3 py-2 text-center min-w-[52px]">
+                    <div class="text-lg font-medium text-[#009990]">
                         {{ \Carbon\Carbon::parse($event->event_date)->format('d') }}
                     </div>
-                    <div style="font-size:10px; color:var(--muted); text-transform:uppercase;">
+                    <div class="text-[10px] text-gray-400 uppercase">
                         {{ \Carbon\Carbon::parse($event->event_date)->format('M') }}
                     </div>
                 </div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        {{ $event->title }}
-                    </div>
-                    <div style="font-size:12px; color:var(--muted);">
-                        {{ \Carbon\Carbon::parse($event->event_date)->format('h:i A') }}
-                    </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">{{ $event->title }}</p>
+                    <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($event->event_date)->format('h:i A') }}</p>
                 </div>
-                <a href="{{ route('events.edit', $event) }}" class="btn btn-ghost" style="padding:5px 10px; font-size:12px;">Editar</a>
+                <a href="{{ route('events.edit', $event) }}"
+                   class="text-xs text-[#074799] hover:text-[#001A6E] border border-[#074799]/20 hover:border-[#001A6E]/30 px-2.5 py-1 rounded-lg transition">
+                    Editar
+                </a>
             </div>
         @empty
-            <p style="color:var(--muted); font-size:14px; text-align:center; padding:24px 0;">
-                No hay eventos próximos
-            </p>
+            <p class="text-sm text-gray-400 text-center py-6">No hay eventos próximos</p>
         @endforelse
     </div>
 
     {{-- PQRS pendientes --}}
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:15px; font-weight:600;">PQRS sin responder</h2>
-            <a href="{{ route('pqrs.index') }}" style="font-size:12px; color:var(--accent2); text-decoration:none;">Ver todas →</a>
+    <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-medium text-gray-800">PQRS sin responder</h2>
+            <a href="{{ route('pqrs.index') }}" class="text-xs text-[#009990] hover:underline">Ver todas →</a>
         </div>
 
         @forelse($recentPqrs as $pqrs)
-            <div style="padding:10px 0; border-bottom:1px solid var(--border);">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span class="badge badge-warning">{{ $pqrs->type }}</span>
-                    <span style="font-size:13px; font-weight:500;">
+            <div class="py-2.5 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-full">
+                        {{ $pqrs->type }}
+                    </span>
+                    <span class="text-sm font-medium text-gray-800 truncate">
                         {{ \Illuminate\Support\Str::limit($pqrs->subject, 40) }}
                     </span>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; color:var(--muted);">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-gray-400">
                         {{ $pqrs->user?->full_name ?? $pqrs->user?->email ?? 'Usuario desconocido' }}
                     </span>
-                    <a href="{{ route('pqrs.show', $pqrs) }}" class="btn btn-ghost" style="padding:4px 10px; font-size:12px;">
+                    <a href="{{ route('pqrs.show', $pqrs) }}"
+                       class="text-xs text-[#074799] hover:text-[#001A6E] border border-[#074799]/20 hover:border-[#001A6E]/30 px-2.5 py-1 rounded-lg transition">
                         Responder
                     </a>
                 </div>
             </div>
         @empty
-            <p style="color:var(--lime); font-size:14px; text-align:center; padding:24px 0;">
-                ✓ Todo al día
-            </p>
+            <p class="text-sm text-center py-6" style="color:#009990">✓ Todo al día</p>
         @endforelse
     </div>
 

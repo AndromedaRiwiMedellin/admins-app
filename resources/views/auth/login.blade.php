@@ -4,168 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión — Orbix Admin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: #001A6E;
-            color: #f0f4ff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .login-wrap { width: 100%; max-width: 400px; }
-
-        .login-logo {
-            text-align: center;
-            margin-bottom: 36px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .login-logo svg { width: 56px; height: 56px; }
-
-        .login-logo h1 {
-            font-family: 'Syne', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            color: #f0f4ff;
-        }
-
-        .login-logo p { font-size: 13px; color: rgba(255,255,255,0.55); }
-
-        .login-card {
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 16px;
-            padding: 32px;
-        }
-
-        .form-group { margin-bottom: 18px; }
-
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.55);
-            margin-bottom: 6px;
-        }
-
-        .form-input {
-            width: 100%;
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 8px;
-            padding: 11px 14px;
-            color: #f0f4ff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: border-color .15s;
-        }
-
-        .form-input:focus { border-color: #009990; }
-
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: #074799;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background .15s;
-            margin-top: 8px;
-        }
-
-        .btn-login:hover { background: #0a5ab8; }
-
-        .error-box {
-            background: rgba(255,107,107,0.10);
-            border: 1px solid rgba(255,107,107,0.25);
-            border-radius: 8px;
-            padding: 11px 14px;
-            font-size: 13px;
-            color: #ff6b6b;
-            margin-bottom: 18px;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.30);
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
-    <div class="login-wrap">
-        <div class="login-logo">
-            <svg viewBox="0 0 56 56" fill="none">
-                <polygon points="28,4 46,14 46,38 28,48 10,38 10,14" fill="#074799" opacity="0.3"/>
-                <polygon points="28,10 42,18 42,34 28,42 14,34 14,18" fill="#009990" opacity="0.7"/>
-                <polygon points="28,18 35,22 35,32 28,36 21,32 21,22" fill="none" stroke="#009990" stroke-width="2"/>
-                <circle cx="28" cy="27" r="4" fill="#009990"/>
-                <path d="M37,8 L48,13 L48,25 C48,35 42,41 37,44 C32,41 26,35 26,25 L26,13 Z" fill="#001A6E" stroke="#E1FFBB" stroke-width="1.5"/>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-5">
+
+<div class="flex w-full max-w-3xl min-h-[480px] rounded-2xl overflow-hidden shadow-lg">
+
+    {{-- Panel izquierdo --}}
+    <div class="w-[42%] bg-[#009990] flex flex-col items-center justify-center gap-5 p-12">
+        <div class="w-16 h-16 bg-[#001A6E]/25 rounded-2xl flex items-center justify-center">
+            <svg class="w-9 h-9" viewBox="0 0 56 56" fill="none">
+                <polygon points="28,4 46,14 46,38 28,48 10,38 10,14" fill="#001A6E" opacity="0.3"/>
+                <polygon points="28,10 42,18 42,34 28,42 14,34 14,18" fill="#E1FFBB" opacity="0.7"/>
+                <polygon points="28,18 35,22 35,32 28,36 21,32 21,22" fill="none" stroke="#E1FFBB" stroke-width="2"/>
+                <circle cx="28" cy="27" r="4" fill="#E1FFBB"/>
+                <path d="M37,8 L48,13 L48,25 C48,35 42,41 37,44 C32,41 26,35 26,25 L26,13 Z" fill="#009990" stroke="#E1FFBB" stroke-width="1.5"/>
                 <text x="37" y="30" text-anchor="middle" font-family="system-ui" font-size="10" font-weight="700" fill="#E1FFBB">A</text>
             </svg>
-            <h1>Orbix</h1>
-            <p>Panel de administración</p>
         </div>
+        <div class="text-center">
+            <p class="text-2xl font-medium text-[#E1FFBB] tracking-tight">Andromeda</p>
+            <p class="text-xs text-[#E1FFBB]/55 mt-1">Panel de administración</p>
+        </div>
+        <div class="w-8 h-px bg-[#E1FFBB]/20"></div>
+        <p class="text-xs text-[#E1FFBB]/45 text-center leading-relaxed max-w-[170px]">
+            Solo personal autorizado puede acceder a este sistema
+        </p>
+    </div>
 
-        <div class="login-card">
-            @if($errors->any())
-                <div class="error-box">{{ $errors->first() }}</div>
+    {{-- Panel derecho --}}
+    <div class="flex-1 bg-white flex items-center justify-center p-10">
+        <div class="w-full max-w-[300px]">
+
+            <span class="inline-flex items-center gap-1.5 bg-[#009990]/08 text-[#009990] text-xs rounded-full px-3 py-1 mb-5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#009990]"></span>
+                Acceso seguro
+            </span>
+
+            <h1 class="text-lg font-medium text-[#001A6E] mb-1">Bienvenido de vuelta</h1>
+            <p class="text-sm text-gray-400 mb-7">Ingresa tus credenciales para continuar</p>
+
+            @if ($errors->any())
+                <div class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2.5 mb-5">
+                    {{ $errors->first() }}
+                </div>
             @endif
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
 
-                <div class="form-group">
-                    <label class="form-label" for="email">Correo electrónico</label>
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5" for="email">Correo electrónico</label>
                     <input
-                        class="form-input"
-                        type="email"
-                        id="email"
-                        name="email"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('email') ? 'border-red-400' : '' }}"
+                        type="email" id="email" name="email"
                         value="{{ old('email') }}"
-                        autocomplete="email"
-                        autofocus
-                        required
+                        placeholder="admin@teatro.com"
+                        autocomplete="email" autofocus required
                     >
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Contraseña</label>
+                <div class="mb-5">
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5" for="password">Contraseña</label>
                     <input
-                        class="form-input"
-                        type="password"
-                        id="password"
-                        name="password"
-                        autocomplete="current-password"
-                        required
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('password') ? 'border-red-400' : '' }}"
+                        type="password" id="password" name="password"
+                        placeholder="••••••••"
+                        autocomplete="current-password" required
                     >
                 </div>
 
-                <button type="submit" class="btn-login">Ingresar</button>
+                <button type="submit"
+                    class="w-full bg-[#009990] hover:bg-[#007a74] text-[#E1FFBB] font-medium text-sm rounded-lg py-2.5 transition active:scale-[0.99]">
+                    Ingresar
+                </button>
             </form>
-        </div>
 
-        <div class="login-footer">
-            Orbix Admin © {{ date('Y') }} — Solo personal autorizado
+            <p class="text-center text-xs text-gray-300 mt-7">
+                Orbix Admin &copy; {{ date('Y') }} &mdash; Solo personal autorizado
+            </p>
         </div>
     </div>
+
+</div>
+
 </body>
 </html>
