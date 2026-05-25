@@ -61,5 +61,5 @@ jobs:
             docker rm ${{ github.event.repository.name }} || true
             docker run -d --name ${{ github.event.repository.name }} \
               --env-file /root/admins-app.env \
-              -p 8081:80 \
+              -p 8081:8080 \
               ghcr.io/${REPO}:latest
