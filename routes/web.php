@@ -29,7 +29,7 @@ Route::middleware('admin')->group(function () {
     Route::patch('/pqrs/{pqrs}/status', [PqrsController::class, 'updateStatus'])->name('pqrs.status');
 
     // Empleados
-    Route::resource('employees', EmployeeController::class)->except(['destroy', 'show']);
+    Route::resource('employees', EmployeeController::class)->except(['show']);
     Route::patch('/employees/{employee}/toggle', [EmployeeController::class, 'toggleActive'])->name('employees.toggle');
 
     // Métricas
