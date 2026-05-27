@@ -62,6 +62,7 @@ COPY --from=node /app/public/build /var/www/public/build
 RUN chown -R www-data:www-data /var/www/storage
 RUN chown -R www-data:www-data /var/www/bootstrap/cache
 RUN rm -f /etc/nginx/sites-enabled/default
+RUN php artisan storage:link --force 2>/dev/null || true
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
