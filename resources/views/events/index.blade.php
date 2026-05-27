@@ -48,7 +48,6 @@
                 <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Activos</option>
                 <option value="upcoming" {{ request('status') === 'upcoming' ? 'selected' : '' }}>Próximos</option>
                 <option value="past"     {{ request('status') === 'past'     ? 'selected' : '' }}>Finalizados</option>
-                <option value="draft"    {{ request('status') === 'draft'    ? 'selected' : '' }}>Borradores</option>
             </select>
             <input
                 type="text" name="search"
@@ -73,7 +72,7 @@
             {{-- Poster --}}
             <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                 @if($event->poster_url)
-                    <img src="{{ $event->poster_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                    <img src="{{ asset('storage/' . $event->poster_url) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
                 @else
                     <div class="w-full h-full flex items-center justify-center bg-[#009990]/10">
                         <svg class="w-5 h-5 text-[#009990]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -89,30 +88,24 @@
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                         {{ \Carbon\Carbon::parse($event->event_date)->format('d M Y · h:i A') }}
                     </span>
-                    @if($event->venue)
-                        <span class="text-xs text-gray-400 flex items-center gap-1">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                            {{ $event->venue }}
-                        </span>
-                    @endif
                 </div>
             </div>
 
-            {{-- Precio --}}
+            {{-- Capacidad --}}
             <div class="text-right flex-shrink-0">
-                <p class="text-sm font-medium text-gray-800">
-                    ${{ number_format($event->base_price, 0, ',', '.') }}
-                </p>
-                <p class="text-xs text-gray-400">desde</p>
+                <p class="text-sm font-medium text-gray-800">{{ number_format($event->total_capacity) }}</p>
+                <p class="text-xs text-gray-400">capacidad</p>
             </div>
 
             {{-- Ocupación --}}
             <div class="w-24 flex-shrink-0">
                 @php
-                    $pct = $event->capacity > 0 ? round(($event->tickets_sold / $event->capacity) * 100) : 0;
+                    $sold = $event->tickets()->count();
+                    $cap = $event->total_capacity > 0 ? $event->total_capacity : 1;
+                    $pct = round(($sold / $cap) * 100);
                 @endphp
                 <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                    <span>{{ $event->tickets_sold }}/{{ $event->capacity }}</span>
+                    <span>{{ $sold }}/{{ $event->total_capacity }}</span>
                     <span>{{ $pct }}%</span>
                 </div>
                 <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -123,7 +116,21 @@
 
             {{-- Estado --}}
             <div class="flex-shrink-0">
-                @switch($event->status)
+                @php
+                    $now = now();
+                    if ($event->sale_start && $event->sale_end) {
+                        if ($now->between($event->sale_start, $event->sale_end)) {
+                            $status = 'active';
+                        } elseif ($now->lt($event->sale_start)) {
+                            $status = 'upcoming';
+                        } else {
+                            $status = 'past';
+                        }
+                    } else {
+                        $status = 'upcoming';
+                    }
+                @endphp
+                @switch($status)
                     @case('active')
                         <span class="text-[10px] font-medium bg-[#009990]/10 text-[#007a74] border border-[#009990]/20 px-2 py-0.5 rounded-full">Activo</span>
                         @break
@@ -132,9 +139,6 @@
                         @break
                     @case('past')
                         <span class="text-[10px] font-medium bg-gray-100 text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">Finalizado</span>
-                        @break
-                    @case('draft')
-                        <span class="text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-full">Borrador</span>
                         @break
                 @endswitch
             </div>

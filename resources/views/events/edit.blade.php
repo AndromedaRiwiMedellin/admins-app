@@ -89,16 +89,16 @@
                         >
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1.5" for="total_capacity">Capacidad total</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1.5" for="capacity">Capacidad total</label>
                         <input
-                            type="number" id="total_capacity" name="total_capacity"
-                            value="{{ old('total_capacity', $event->total_capacity) }}"
+                            type="number" id="capacity" name="capacity"
+                            value="{{ old('capacity', $event->total_capacity) }}"
                             placeholder="Ej: 450"
                             min="1"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('total_capacity') ? 'border-red-400' : '' }}"
+                            class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('capacity') ? 'border-red-400' : '' }}"
                             required
                         >
-                        @error('total_capacity') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                        @error('capacity') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
@@ -174,10 +174,9 @@
             </div>
 
             <div class="p-6">
-                {{-- Póster actual --}}
                 @if($event->poster_url)
                     <div class="flex items-center gap-3 mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <img src="{{ Storage::url($event->poster_url) }}" alt="Póster actual" class="w-12 h-12 object-cover rounded-lg">
+                        <img src="{{ asset('storage/' . $event->poster_url) }}" alt="Póster actual" class="w-12 h-12 object-cover rounded-lg">
                         <div>
                             <p class="text-xs font-medium text-gray-700">Póster actual</p>
                             <p class="text-xs text-gray-400">Sube una nueva imagen para reemplazarlo</p>
@@ -194,6 +193,21 @@
                 </label>
                 @error('poster') <p class="text-xs text-red-400 mt-2">{{ $message }}</p> @enderror
             </div>
+        </div>
+
+        {{-- Zona de peligro --}}
+        <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+            <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
+            <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Solo se puede eliminar si no tiene boletas vendidas.</p>
+            <form method="POST" action="{{ route('events.destroy', $event) }}"
+                  onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">
+                    Eliminar evento
+                </button>
+            </form>
         </div>
 
         {{-- Botones --}}
