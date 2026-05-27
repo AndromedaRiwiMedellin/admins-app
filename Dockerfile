@@ -53,20 +53,23 @@ RUN docker-php-ext-install \
 
 WORKDIR /var/www
 
-# Copiar app desde composer
 COPY --from=composer /app /var/www
-
-# Copiar assets compilados desde node
 COPY --from=node /app/public/build /var/www/public/build
 
-RUN chown -R www-data:www-data /var/www/storage
-RUN chown -R www-data:www-data /var/www/bootstrap/cache
-RUN rm -f /etc/nginx/sites-enabled/default
-RUN mkdir -p /var/www/storage/app/public/posters && \
-    chown -R www-data:www-data /var/www/storage
+RUN mkdir -p \
+    /var/www/storage/logs \
+    /var/www/storage/framework/sessions \
+    /var/www/storage/framework/views \
+    /var/www/storage/framework/cache/data \
+    /var/www/storage/app/public/posters && \
+    chown -R www-data:www-data /var/www/storage && \
+    chown -R www-data:www-data /var/www/bootstrap/cache
 
+RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+RUN php artisan storage:link --force 2>/dev/null || true
 
 EXPOSE 8081
 
-CMD service nginx start && php-fpm
+CMD ["sh", "-c", "service nginx start && php-fpm"]
