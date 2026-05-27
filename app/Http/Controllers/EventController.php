@@ -36,13 +36,14 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'event_date'     => 'required|date',
-            'sale_start'     => 'required|date',
-            'sale_end'       => 'required|date|after:sale_start',
-            'total_capacity' => 'required|integer|min:1',
-            'poster'         => 'nullable|image|max:2048',
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'event_date'  => 'required|date',
+            'event_time'  => 'required',
+            'sale_start'  => 'required|date',
+            'sale_end'    => 'required|date|after:sale_start',
+            'capacity'    => 'required|integer|min:1',
+            'poster'      => 'nullable|image|max:2048',
         ]);
 
         $posterUrl = null;
@@ -50,16 +51,18 @@ class EventController extends Controller
             $posterUrl = $request->file('poster')->store('posters', 'public');
         }
 
+        $employee = auth()->user()->employee;
+
         Event::create([
             'id'             => Str::uuid(),
             'title'          => $validated['title'],
             'description'    => $validated['description'] ?? null,
-            'event_date'     => $validated['event_date'],
+            'event_date'     => $validated['event_date'] . ' ' . $validated['event_time'],
             'sale_start'     => $validated['sale_start'],
             'sale_end'       => $validated['sale_end'],
-            'total_capacity' => $validated['total_capacity'],
+            'total_capacity' => $validated['capacity'],
             'poster_url'     => $posterUrl,
-            'created_by'     => auth()->id(),
+            'created_by'     => $employee?->id,
             'created_at'     => now(),
         ]);
 
@@ -75,13 +78,14 @@ class EventController extends Controller
     public function update(Request $request, Event $event)
     {
         $validated = $request->validate([
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'event_date'     => 'required|date',
-            'sale_start'     => 'required|date',
-            'sale_end'       => 'required|date|after:sale_start',
-            'total_capacity' => 'required|integer|min:1',
-            'poster'         => 'nullable|image|max:2048',
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'event_date'  => 'required|date',
+            'event_time'  => 'required',
+            'sale_start'  => 'required|date',
+            'sale_end'    => 'required|date|after:sale_start',
+            'capacity'    => 'required|integer|min:1',
+            'poster'      => 'nullable|image|max:2048',
         ]);
 
         $changed = $event->title      !== $validated['title'] ||
@@ -89,14 +93,23 @@ class EventController extends Controller
                    $event->sale_start !== $validated['sale_start'] ||
                    $event->sale_end   !== $validated['sale_end'];
 
+        $posterUrl = $event->poster_url;
         if ($request->hasFile('poster')) {
             if ($event->poster_url) {
                 Storage::disk('public')->delete($event->poster_url);
             }
-            $validated['poster_url'] = $request->file('poster')->store('posters', 'public');
+            $posterUrl = $request->file('poster')->store('posters', 'public');
         }
 
-        $event->update($validated);
+        $event->update([
+            'title'          => $validated['title'],
+            'description'    => $validated['description'] ?? null,
+            'event_date'     => $validated['event_date'] . ' ' . $validated['event_time'],
+            'sale_start'     => $validated['sale_start'],
+            'sale_end'       => $validated['sale_end'],
+            'total_capacity' => $validated['capacity'],
+            'poster_url'     => $posterUrl,
+        ]);
 
         if ($changed) {
             $this->notifyFavoriteUsers($event);
@@ -111,7 +124,13 @@ class EventController extends Controller
         if ($event->poster_url) {
             Storage::disk('public')->delete($event->poster_url);
         }
-        $event->delete();
+
+        try {
+            $event->delete();
+        } catch (\Exception $e) {
+            return redirect()->route('events.index')
+                ->with('error', 'No se puede eliminar un evento con boletas vendidas.');
+        }
 
         return redirect()->route('events.index')
             ->with('success', 'Evento eliminado.');
@@ -132,7 +151,6 @@ class EventController extends Controller
         foreach ($favorites as $favorite) {
             if (!$favorite->user) continue;
 
-            // Guardar notificación en BD
             Notification::create([
                 'id'         => Str::uuid(),
                 'user_id'    => $favorite->user_id,
@@ -142,7 +160,6 @@ class EventController extends Controller
                 'created_at' => now(),
             ]);
 
-            // Enviar email
             Mail::to($favorite->user->email)
                 ->send(new EventUpdatedMail($event, $favorite->user));
         }
