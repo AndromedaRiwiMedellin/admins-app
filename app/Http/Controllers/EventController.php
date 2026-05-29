@@ -81,17 +81,17 @@ class EventController extends Controller
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'event_date'  => 'required|date',
-            'event_time'  => 'required',
+            'event_time'  => 'nullable',
             'sale_start'  => 'required|date',
             'sale_end'    => 'required|date|after:sale_start',
             'capacity'    => 'required|integer|min:1',
             'poster'      => 'nullable|image|max:2048',
         ]);
 
-        $changed = $event->title      !== $validated['title'] ||
-                   $event->event_date !== $validated['event_date'] ||
-                   $event->sale_start !== $validated['sale_start'] ||
-                   $event->sale_end   !== $validated['sale_end'];
+        $changed = $event->title !== $validated['title'] ||
+                   \Carbon\Carbon::parse($event->event_date)->toDateString() !== \Carbon\Carbon::parse($validated['event_date'])->toDateString() ||
+                   \Carbon\Carbon::parse($event->sale_start)->toDateTimeString() !== \Carbon\Carbon::parse($validated['sale_start'])->toDateTimeString() ||
+                   \Carbon\Carbon::parse($event->sale_end)->toDateTimeString() !== \Carbon\Carbon::parse($validated['sale_end'])->toDateTimeString();
 
         $posterUrl = $event->poster_url;
         if ($request->hasFile('poster')) {
@@ -101,10 +101,15 @@ class EventController extends Controller
             $posterUrl = $request->file('poster')->store('posters', 'public');
         }
 
+        $eventDate = $validated['event_date'];
+        if ($request->filled('event_time')) {
+            $eventDate .= ' ' . $validated['event_time'];
+        }
+
         $event->update([
             'title'          => $validated['title'],
             'description'    => $validated['description'] ?? null,
-            'event_date'     => $validated['event_date'] . ' ' . $validated['event_time'],
+            'event_date'     => $eventDate,
             'sale_start'     => $validated['sale_start'],
             'sale_end'       => $validated['sale_end'],
             'total_capacity' => $validated['capacity'],
