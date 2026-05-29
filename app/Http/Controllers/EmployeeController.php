@@ -38,7 +38,6 @@ class EmployeeController extends Controller
             'phone'      => 'nullable|string|max:20',
         ]);
 
-        // Crear usuario en la tabla users
         $user = User::create([
             'id'            => Str::uuid(),
             'email'         => $validated['email'],
@@ -48,7 +47,6 @@ class EmployeeController extends Controller
             'created_at'    => now(),
         ]);
 
-        // Crear empleado
         $employee = Employee::create([
             'id'         => Str::uuid(),
             'user_id'    => $user->id,
@@ -57,7 +55,6 @@ class EmployeeController extends Controller
             'created_at' => now(),
         ]);
 
-        // Asignar permisos
         $permissions = [];
         if ($request->boolean('can_tickets')) {
             $perm = Permission::where('name', 'tickets')->first();
@@ -92,18 +89,15 @@ class EmployeeController extends Controller
             'phone'      => 'nullable|string|max:20',
         ]);
 
-        // Actualizar usuario
         $employee->user->update([
             'full_name' => $validated['first_name'] . ' ' . $validated['last_name'],
             'phone'     => $validated['phone'] ?? null,
         ]);
 
-        // Actualizar estado
         $employee->update([
             'active' => $request->boolean('is_active'),
         ]);
 
-        // Actualizar permisos
         $permissions = [];
         if ($request->boolean('can_tickets')) {
             $perm = Permission::where('name', 'tickets')->first();
@@ -125,5 +119,22 @@ class EmployeeController extends Controller
         $employee->update(['active' => !$employee->active]);
         $status = $employee->active ? 'activado' : 'desactivado';
         return back()->with('success', "Empleado {$status}.");
+    }
+
+    public function destroy(Employee $employee)
+    {
+        try {
+            $user = $employee->user;
+            $employee->permissions()->detach();
+            $employee->delete();
+            if ($user) {
+                $user->delete();
+            }
+            return redirect()->route('employees.index')
+                ->with('success', 'Empleado eliminado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('employees.index')
+                ->with('error', 'No se puede eliminar este empleado.');
+        }
     }
 }
