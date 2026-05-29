@@ -56,13 +56,20 @@ WORKDIR /var/www
 COPY --from=composer /app /var/www
 COPY --from=node /app/public/build /var/www/public/build
 
-RUN chown -R www-data:www-data /var/www/bootstrap/cache
+RUN mkdir -p \
+    /var/www/storage/logs \
+    /var/www/storage/framework/sessions \
+    /var/www/storage/framework/views \
+    /var/www/storage/framework/cache/data \
+    /var/www/storage/app/public/posters && \
+    chown -R www-data:www-data /var/www/storage && \
+    chown -R www-data:www-data /var/www/bootstrap/cache
 
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+RUN php artisan storage:link --force 2>/dev/null || true
 
 EXPOSE 8081
 
-CMD ["docker-entrypoint.sh"]
+CMD ["sh", "-c", "service nginx start && php-fpm"]

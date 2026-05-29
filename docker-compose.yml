@@ -9,3 +9,8 @@ services:
       - "8081:80"
     env_file:
       - .env
+    volumes:
+      - storage_data:/var/www/storage/app/public
+
+volumes:
+  storage_data:
