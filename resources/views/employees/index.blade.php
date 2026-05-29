@@ -20,12 +20,16 @@
     </div>
     <div class="bg-white border border-gray-100 rounded-xl p-4">
         <p class="text-xs text-gray-400 mb-2">Acceso a Tickets</p>
-        <p class="text-2xl font-medium text-[#009990]">{{ $employees->where('can_tickets', true)->count() }}</p>
+        <p class="text-2xl font-medium text-[#009990]">
+            {{ $employees->getCollection()->filter(fn($e) => $e->permissions->contains('name', 'tickets'))->count() }}
+        </p>
         <p class="text-xs text-gray-400 mt-1">Portal de taquilla</p>
     </div>
     <div class="bg-white border border-gray-100 rounded-xl p-4">
         <p class="text-xs text-gray-400 mb-2">Acceso a Acceso</p>
-        <p class="text-2xl font-medium text-[#074799]">{{ $employees->where('can_access', true)->count() }}</p>
+        <p class="text-2xl font-medium text-[#074799]">
+            {{ $employees->getCollection()->filter(fn($e) => $e->permissions->contains('name', 'access'))->count() }}
+        </p>
         <p class="text-xs text-gray-400 mt-1">Portal de entrada</p>
     </div>
 </div>
@@ -57,33 +61,40 @@
 
     {{-- Lista --}}
     @forelse($employees as $employee)
+        @php
+            $canTickets = $employee->permissions->contains('name', 'tickets');
+            $canAccess  = $employee->permissions->contains('name', 'access');
+            $initials   = strtoupper(substr($employee->user?->full_name ?? $employee->user?->email ?? 'EM', 0, 2));
+            $bgColor    = $canTickets && $canAccess ? '#001A6E' : ($canTickets ? '#009990' : '#074799');
+        @endphp
+
         <div class="flex items-center gap-4 px-5 py-3.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition">
 
             {{-- Avatar --}}
             <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium text-[#E1FFBB] flex-shrink-0"
-                 style="background: {{ $employee->can_tickets && $employee->can_access ? '#001A6E' : ($employee->can_tickets ? '#009990' : '#074799') }}">
-                {{ strtoupper(substr($employee->full_name ?? $employee->email, 0, 2)) }}
+                 style="background: {{ $bgColor }}">
+                {{ $initials }}
             </div>
 
             {{-- Info --}}
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate">{{ $employee->full_name ?? '—' }}</p>
-                <p class="text-xs text-gray-400 truncate">{{ $employee->email }}</p>
+                <p class="text-sm font-medium text-gray-800 truncate">{{ $employee->user?->full_name ?? '—' }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ $employee->user?->email ?? '—' }}</p>
             </div>
 
             {{-- Permisos --}}
             <div class="flex items-center gap-2 flex-shrink-0">
-                @if($employee->can_tickets)
+                @if($canTickets)
                     <span class="text-[10px] font-medium bg-[#009990]/10 text-[#007a74] border border-[#009990]/20 px-2 py-0.5 rounded-full">
                         Tickets
                     </span>
                 @endif
-                @if($employee->can_access)
+                @if($canAccess)
                     <span class="text-[10px] font-medium bg-[#001A6E]/08 text-[#001A6E] border border-[#001A6E]/15 px-2 py-0.5 rounded-full">
                         Acceso
                     </span>
                 @endif
-                @if(!$employee->can_tickets && !$employee->can_access)
+                @if(!$canTickets && !$canAccess)
                     <span class="text-[10px] text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">
                         Sin permisos
                     </span>
@@ -92,7 +103,7 @@
 
             {{-- Estado --}}
             <div class="flex-shrink-0">
-                @if($employee->is_active)
+                @if($employee->active)
                     <span class="text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
                         Activo
                     </span>
@@ -109,15 +120,6 @@
                    class="text-xs text-[#074799] hover:text-[#001A6E] border border-[#074799]/20 hover:border-[#001A6E]/30 px-2.5 py-1 rounded-lg transition">
                     Editar
                 </a>
-                <form method="POST" action="{{ route('employees.destroy', $employee) }}"
-                      onsubmit="return confirm('¿Eliminar a {{ $employee->full_name }}?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="text-xs text-red-400 hover:text-red-600 border border-red-100 hover:border-red-300 px-2.5 py-1 rounded-lg transition">
-                        Eliminar
-                    </button>
-                </form>
             </div>
         </div>
     @empty
