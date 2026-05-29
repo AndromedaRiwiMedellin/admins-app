@@ -14,9 +14,17 @@ class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::with('user', 'role', 'permissions')
-            ->orderByDesc('created_at')
-            ->paginate(15);
+        $query = Employee::with('user', 'role', 'permissions')
+            ->orderByDesc('created_at');
+
+        if ($request->filled('search')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('full_name', 'ilike', '%' . $request->search . '%')
+                    ->orWhere('email', 'ilike', '%' . $request->search . '%');
+            });
+        }
+
+        $employees = $query->paginate(15)->withQueryString();
 
         return view('employees.index', compact('employees'));
     }
