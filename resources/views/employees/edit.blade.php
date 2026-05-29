@@ -11,7 +11,9 @@
 
 @section('content')
 
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto flex flex-col gap-4">
+
+    {{-- Formulario principal --}}
     <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
 
         {{-- Header --}}
@@ -114,7 +116,6 @@
             <div>
                 <p class="text-xs font-medium text-gray-600 mb-3">Permisos de acceso</p>
                 <div class="grid grid-cols-2 gap-3">
-
                     <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#009990]/40 transition has-[:checked]:border-[#009990] has-[:checked]:bg-[#009990]/05">
                         <input type="checkbox" name="can_tickets" value="1"
                                {{ old('can_tickets', $employee->can_tickets) ? 'checked' : '' }}
@@ -125,7 +126,6 @@
                             <p class="text-[10px] text-[#009990] mt-1">tickets.andromeda...</p>
                         </div>
                     </label>
-
                     <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#074799]/40 transition has-[:checked]:border-[#074799] has-[:checked]:bg-[#074799]/05">
                         <input type="checkbox" name="can_access" value="1"
                                {{ old('can_access', $employee->can_access) ? 'checked' : '' }}
@@ -136,7 +136,6 @@
                             <p class="text-[10px] text-[#074799] mt-1">acceso.andromeda...</p>
                         </div>
                     </label>
-
                 </div>
             </div>
 
@@ -155,21 +154,6 @@
                 </label>
             </div>
 
-            {{-- Zona de peligro --}}
-            <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
-                <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
-                <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Se eliminarán todos los datos del empleado.</p>
-                <form method="POST" action="{{ route('employees.destroy', $employee) }}"
-                      onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">
-                        Eliminar empleado
-                    </button>
-                </form>
-            </div>
-
             {{-- Botones --}}
             <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
                 <a href="{{ route('employees.index') }}"
@@ -184,6 +168,22 @@
 
         </form>
     </div>
+
+    {{-- Zona de peligro FUERA del form principal --}}
+    <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+        <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
+        <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Se eliminarán todos los datos del empleado.</p>
+        <form method="POST" action="{{ route('employees.destroy', $employee) }}"
+              onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">
+                Eliminar empleado
+            </button>
+        </form>
+    </div>
+
 </div>
 
 @endsection
