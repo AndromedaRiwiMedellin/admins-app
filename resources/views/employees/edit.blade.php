@@ -45,7 +45,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1.5" for="first_name">Nombre</label>
                     <input
                         type="text" id="first_name" name="first_name"
-                        value="{{ old('first_name', $employee->first_name) }}"
+                        value="{{ old('first_name', explode(' ', $employee->user->full_name ?? '')[0] ?? '') }}"
                         placeholder="Ej: María"
                         class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('first_name') ? 'border-red-400' : '' }}"
                         required
@@ -58,7 +58,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1.5" for="last_name">Apellido</label>
                     <input
                         type="text" id="last_name" name="last_name"
-                        value="{{ old('last_name', $employee->last_name) }}"
+                        value="{{ old('last_name', implode(' ', array_slice(explode(' ', $employee->user->full_name ?? ''), 1))) }}"
                         placeholder="Ej: Restrepo"
                         class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('last_name') ? 'border-red-400' : '' }}"
                         required
@@ -74,7 +74,7 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1.5" for="email">Correo electrónico</label>
                 <input
                     type="email" id="email" name="email"
-                    value="{{ old('email', $employee->email) }}"
+                    value="{{ old('email', $employee->user->email ?? '') }}"
                     placeholder="empleado@teatro.com"
                     class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('email') ? 'border-red-400' : '' }}"
                     required
@@ -106,7 +106,7 @@
                 </label>
                 <input
                     type="text" id="phone" name="phone"
-                    value="{{ old('phone', $employee->phone) }}"
+                    value="{{ old('phone', $employee->user->phone ?? '') }}"
                     placeholder="+57 300 000 0000"
                     class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
                 >
