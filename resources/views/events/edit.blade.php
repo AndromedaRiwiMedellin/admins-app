@@ -16,6 +16,14 @@
         @csrf
         @method('PUT')
 
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2.5">
+                @foreach($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
         {{-- Info principal --}}
         <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
@@ -195,21 +203,6 @@
             </div>
         </div>
 
-        {{-- Zona de peligro --}}
-        <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
-            <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
-            <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Solo se puede eliminar si no tiene boletas vendidas.</p>
-            <form method="POST" action="{{ route('events.destroy', $event) }}"
-                  onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">
-                    Eliminar evento
-                </button>
-            </form>
-        </div>
-
         {{-- Botones --}}
         <div class="flex items-center justify-end gap-3">
             <a href="{{ route('events.index') }}"
@@ -223,6 +216,22 @@
         </div>
 
     </form>
+
+    {{-- Zona de peligro — fuera del form principal --}}
+    <div class="p-4 bg-red-50 border border-red-100 rounded-xl mt-4">
+        <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
+        <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Solo se puede eliminar si no tiene boletas vendidas.</p>
+        <form method="POST" action="{{ route('events.destroy', $event) }}"
+              onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">
+                Eliminar evento
+            </button>
+        </form>
+    </div>
+
 </div>
 
 @push('scripts')
