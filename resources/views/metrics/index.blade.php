@@ -22,7 +22,7 @@
 @section('content')
 
 {{-- Stats principales --}}
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
 
     <div class="bg-white border border-gray-100 border-l-4 border-l-[#009990] rounded-xl p-5">
         <p class="text-xs text-gray-400 mb-2">Boletas vendidas</p>
@@ -36,6 +36,12 @@
         <p class="text-xs text-gray-400 mt-1">Total: {{ $totalUsers }} registrados</p>
     </div>
 
+    <div class="bg-white border border-gray-100 border-l-4 border-l-amber-400 rounded-xl p-5">
+        <p class="text-xs text-gray-400 mb-2">Ingresos vendidos</p>
+        <p class="text-3xl font-medium text-[#001A6E]">${{ number_format($totalRevenue, 0, ',', '.') }}</p>
+        <p class="text-xs text-gray-400 mt-1">Segun precio de la localidad</p>
+    </div>
+
     <div class="bg-white border border-gray-100 border-l-4 border-l-[#E1FFBB] rounded-xl p-5">
         <p class="text-xs text-gray-400 mb-2">Ocupación promedio</p>
         <p class="text-3xl font-medium {{ $avgOccupancy >= 80 ? 'text-[#009990]' : ($avgOccupancy >= 50 ? 'text-amber-500' : 'text-gray-800') }}">
@@ -46,7 +52,7 @@
 
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
     {{-- Gráfica boletas por semana --}}
     <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
@@ -83,6 +89,9 @@
             @if($occupancyData->isEmpty())
                 <p class="text-sm text-gray-400 text-center py-8">Sin eventos en este rango</p>
             @else
+                <div class="mb-5">
+                    <canvas id="occupancyChart" height="160"></canvas>
+                </div>
                 @foreach($occupancyData as $item)
                     <div class="mb-4 last:mb-0">
                         <div class="flex justify-between items-center mb-1.5">
@@ -138,6 +147,48 @@ new Chart(ctx, {
                 ticks: { color: '#9ca3af', font: { size: 11 } }
             },
             x: {
+                grid: { display: false },
+                ticks: { color: '#9ca3af', font: { size: 11 } }
+            }
+        }
+    }
+});
+@endif
+
+@if(!$occupancyData->isEmpty())
+const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+new Chart(occupancyCtx, {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($occupancyData->pluck('title')) !!},
+        datasets: [{
+            label: 'Ocupacion',
+            data: {!! json_encode($occupancyData->pluck('occupancy')) !!},
+            backgroundColor: 'rgba(7, 71, 153, 0.14)',
+            borderColor: '#074799',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.parsed.x}% de ocupacion`
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: 'rgba(0,0,0,0.04)' },
+                ticks: { color: '#9ca3af', font: { size: 11 }, callback: (value) => `${value}%` }
+            },
+            y: {
                 grid: { display: false },
                 ticks: { color: '#9ca3af', font: { size: 11 } }
             }

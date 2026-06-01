@@ -9,12 +9,14 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
+    private const SOLD_STATUSES = ['VALID', 'USED', 'SOLD'];
+
     public function index()
     {
         $stats = [
             'events_this_month' => Event::whereMonth('event_date', now()->month)->count(),
             'tickets_this_week' => Ticket::where('purchased_at', '>=', now()->startOfWeek())
-                                        ->whereIn('status', ['sold', 'used'])->count(),
+                                        ->whereRaw('UPPER(status) IN (?, ?, ?)', self::SOLD_STATUSES)->count(),
             'pending_pqrs'      => Pqrs::where('status', 'pending')->count(),
             'total_users'       => User::count(),
         ];
