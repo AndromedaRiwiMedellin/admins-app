@@ -11,23 +11,28 @@
 
 @section('content')
 
+@php
+    $canTickets = $employee->permissions->contains('name', 'tickets');
+    $canAccess  = $employee->permissions->contains('name', 'access');
+    $bgColor    = $canTickets && $canAccess ? '#001A6E' : ($canTickets ? '#009990' : '#074799');
+    $initials   = strtoupper(substr($employee->user?->full_name ?? $employee->user?->email ?? 'EM', 0, 2));
+@endphp
+
 <div class="max-w-2xl mx-auto flex flex-col gap-4">
 
-    {{-- Formulario principal --}}
     <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
 
-        {{-- Header --}}
         <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
             <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium text-[#E1FFBB] flex-shrink-0"
-                 style="background: {{ $employee->can_tickets && $employee->can_access ? '#001A6E' : ($employee->can_tickets ? '#009990' : '#074799') }}">
-                {{ strtoupper(substr($employee->full_name ?? $employee->email, 0, 2)) }}
+                 style="background: {{ $bgColor }}">
+                {{ $initials }}
             </div>
             <div>
-                <h2 class="text-sm font-medium text-gray-800">{{ $employee->full_name ?? $employee->email }}</h2>
+                <h2 class="text-sm font-medium text-gray-800">{{ $employee->user?->full_name ?? $employee->user?->email }}</h2>
                 <p class="text-xs text-gray-400">Editando información y permisos</p>
             </div>
             <div class="ml-auto">
-                @if($employee->is_active)
+                @if($employee->active)
                     <span class="text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">Activo</span>
                 @else
                     <span class="text-[10px] font-medium bg-gray-100 text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">Inactivo</span>
@@ -39,77 +44,58 @@
             @csrf
             @method('PUT')
 
-            {{-- Nombre y apellido --}}
+            @if($errors->any())
+                <div class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2.5">
+                    @foreach($errors->all() as $error)
+                        <p>{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5" for="first_name">Nombre</label>
-                    <input
-                        type="text" id="first_name" name="first_name"
-                        value="{{ old('first_name', explode(' ', $employee->user->full_name ?? '')[0] ?? '') }}"
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre</label>
+                    <input type="text" name="first_name"
+                        value="{{ old('first_name', explode(' ', $employee->user?->full_name ?? '')[0] ?? '') }}"
                         placeholder="Ej: María"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('first_name') ? 'border-red-400' : '' }}"
-                        required
-                    >
-                    @error('first_name')
-                        <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                    @enderror
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
+                        required>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5" for="last_name">Apellido</label>
-                    <input
-                        type="text" id="last_name" name="last_name"
-                        value="{{ old('last_name', implode(' ', array_slice(explode(' ', $employee->user->full_name ?? ''), 1))) }}"
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Apellido</label>
+                    <input type="text" name="last_name"
+                        value="{{ old('last_name', implode(' ', array_slice(explode(' ', $employee->user?->full_name ?? ''), 1))) }}"
                         placeholder="Ej: Restrepo"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('last_name') ? 'border-red-400' : '' }}"
-                        required
-                    >
-                    @error('last_name')
-                        <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                    @enderror
+                        class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
+                        required>
                 </div>
             </div>
 
-            {{-- Email --}}
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5" for="email">Correo electrónico</label>
-                <input
-                    type="email" id="email" name="email"
-                    value="{{ old('email', $employee->user->email ?? '') }}"
-                    placeholder="empleado@teatro.com"
-                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('email') ? 'border-red-400' : '' }}"
-                    required
-                >
-                @error('email')
-                    <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                @enderror
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">Correo electrónico</label>
+                <input type="email" name="email"
+                    value="{{ old('email', $employee->user?->email ?? '') }}"
+                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
+                    required>
             </div>
 
-            {{-- Contraseña --}}
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5" for="password">
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">
                     Nueva contraseña <span class="text-gray-300">(dejar vacío para no cambiar)</span>
                 </label>
-                <input
-                    type="password" id="password" name="password"
+                <input type="password" name="password"
                     placeholder="Mínimo 8 caracteres"
-                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('password') ? 'border-red-400' : '' }}"
-                >
-                @error('password')
-                    <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                @enderror
+                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition">
             </div>
 
-            {{-- Teléfono --}}
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5" for="phone">
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">
                     Teléfono <span class="text-gray-300">(opcional)</span>
                 </label>
-                <input
-                    type="text" id="phone" name="phone"
-                    value="{{ old('phone', $employee->user->phone ?? '') }}"
+                <input type="text" name="phone"
+                    value="{{ old('phone', $employee->user?->phone ?? '') }}"
                     placeholder="+57 300 000 0000"
-                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
-                >
+                    class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition">
             </div>
 
             {{-- Permisos --}}
@@ -118,7 +104,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#009990]/40 transition has-[:checked]:border-[#009990] has-[:checked]:bg-[#009990]/05">
                         <input type="checkbox" name="can_tickets" value="1"
-                               {{ old('can_tickets', $employee->can_tickets) ? 'checked' : '' }}
+                               {{ old('can_tickets', $canTickets) ? 'checked' : '' }}
                                class="mt-0.5 accent-[#009990]">
                         <div>
                             <p class="text-sm font-medium text-gray-700">Portal Tickets</p>
@@ -128,7 +114,7 @@
                     </label>
                     <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#074799]/40 transition has-[:checked]:border-[#074799] has-[:checked]:bg-[#074799]/05">
                         <input type="checkbox" name="can_access" value="1"
-                               {{ old('can_access', $employee->can_access) ? 'checked' : '' }}
+                               {{ old('can_access', $canAccess) ? 'checked' : '' }}
                                class="mt-0.5 accent-[#074799]">
                         <div>
                             <p class="text-sm font-medium text-gray-700">Portal Acceso</p>
@@ -148,13 +134,12 @@
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="hidden" name="is_active" value="0">
                     <input type="checkbox" name="is_active" value="1"
-                           {{ old('is_active', $employee->is_active) ? 'checked' : '' }}
+                           {{ old('is_active', $employee->active) ? 'checked' : '' }}
                            class="sr-only peer">
                     <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#009990] transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition peer-checked:after:translate-x-5"></div>
                 </label>
             </div>
 
-            {{-- Botones --}}
             <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
                 <a href="{{ route('employees.index') }}"
                    class="text-sm text-gray-400 hover:text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
@@ -169,12 +154,12 @@
         </form>
     </div>
 
-    {{-- Zona de peligro FUERA del form principal --}}
+    {{-- Zona de peligro --}}
     <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
         <p class="text-xs font-medium text-red-600 mb-1">Zona de peligro</p>
-        <p class="text-xs text-red-400 mb-3">Esta acción es irreversible. Se eliminarán todos los datos del empleado.</p>
+        <p class="text-xs text-red-400 mb-3">Esta acción es irreversible.</p>
         <form method="POST" action="{{ route('employees.destroy', $employee) }}"
-              onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.')">
+              onsubmit="return confirm('¿Estás seguro?')">
             @csrf
             @method('DELETE')
             <button type="submit"
