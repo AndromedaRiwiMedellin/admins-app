@@ -3,6 +3,17 @@
 
 @section('topbar-actions')
     <form method="GET" action="{{ route('metrics.index') }}" class="flex items-center gap-2">
+        <select
+            name="event_id"
+            class="bg-white border border-gray-200 text-gray-600 text-xs rounded-lg px-3 py-1.5 outline-none focus:border-[#009990] transition max-w-[220px]"
+        >
+            <option value="all" {{ $selectedEventId === 'all' ? 'selected' : '' }}>Todos los eventos</option>
+            @foreach($eventOptions as $eventOption)
+                <option value="{{ $eventOption->id }}" {{ (string) $selectedEventId === (string) $eventOption->id ? 'selected' : '' }}>
+                    {{ $eventOption->title }}
+                </option>
+            @endforeach
+        </select>
         <input
             type="date" name="from" value="{{ $from }}"
             class="bg-white border border-gray-200 text-gray-600 text-xs rounded-lg px-3 py-1.5 outline-none focus:border-[#009990] transition"
@@ -17,7 +28,7 @@
             Aplicar
         </button>
     </form>
-    <a href="{{ route('metrics.export', ['from' => $from, 'to' => $to]) }}"
+    <a href="{{ route('metrics.export', ['from' => $from, 'to' => $to, 'event_id' => $selectedEventId]) }}"
        class="bg-white hover:bg-gray-50 text-[#001A6E] border border-white/70 text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         Excel
@@ -55,6 +66,70 @@
         <p class="text-xs text-gray-400 mt-1">Promedio por evento</p>
     </div>
 
+</div>
+
+<div class="bg-white border border-gray-100 rounded-xl overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+        <div>
+            <h3 class="text-sm font-medium text-gray-800">Metricas por evento</h3>
+            <p class="text-xs text-gray-400">Imagen, ventas, ingresos y ocupacion del rango seleccionado</p>
+        </div>
+        <span class="text-xs text-gray-400">{{ $eventMetrics->count() }} evento(s)</span>
+    </div>
+
+    @if($eventMetrics->isEmpty())
+        <p class="text-sm text-gray-400 text-center py-8">Sin eventos para mostrar</p>
+    @else
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5">
+            @foreach($eventMetrics as $item)
+                @php
+                    $poster = $item['poster_url'] ?? null;
+                    $posterUrl = $poster
+                        ? (\Illuminate\Support\Str::startsWith($poster, ['http://', 'https://']) ? $poster : asset('storage/' . $poster))
+                        : null;
+                @endphp
+                <article class="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+                    <div class="h-36 bg-[#001A6E]/10 overflow-hidden">
+                        @if($posterUrl)
+                            <img src="{{ $posterUrl }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center text-[#001A6E] text-3xl font-medium">
+                                {{ strtoupper(substr($item['title'], 0, 1)) }}
+                            </div>
+                        @endif
+                    </div>
+                    <div class="p-4">
+                        <p class="text-xs text-gray-400 mb-1">{{ $item['date'] ?: 'Fecha por confirmar' }}</p>
+                        <h4 class="text-sm font-medium text-gray-800 mb-3 truncate" title="{{ $item['title'] }}">{{ $item['title'] }}</h4>
+
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="bg-white rounded-lg p-2 border border-gray-100">
+                                <p class="text-[10px] text-gray-400">Vendidas</p>
+                                <strong class="text-sm text-[#001A6E]">{{ $item['sold'] }}</strong>
+                            </div>
+                            <div class="bg-white rounded-lg p-2 border border-gray-100">
+                                <p class="text-[10px] text-gray-400">Ingresos</p>
+                                <strong class="text-sm text-[#001A6E]">${{ number_format($item['revenue'], 0, ',', '.') }}</strong>
+                            </div>
+                            <div class="bg-white rounded-lg p-2 border border-gray-100">
+                                <p class="text-[10px] text-gray-400">Capacidad</p>
+                                <strong class="text-sm text-[#001A6E]">{{ $item['capacity'] ?? 0 }}</strong>
+                            </div>
+                            <div class="bg-white rounded-lg p-2 border border-gray-100">
+                                <p class="text-[10px] text-gray-400">Ocupacion</p>
+                                <strong class="text-sm {{ $item['occupancy'] >= 80 ? 'text-[#009990]' : ($item['occupancy'] >= 50 ? 'text-amber-500' : 'text-gray-600') }}">{{ $item['occupancy'] }}%</strong>
+                            </div>
+                        </div>
+
+                        <div class="w-full h-2 bg-white rounded-full overflow-hidden">
+                            <div class="h-2 rounded-full {{ $item['occupancy'] >= 80 ? 'bg-[#009990]' : ($item['occupancy'] >= 50 ? 'bg-amber-400' : 'bg-gray-300') }}"
+                                 style="width: {{ min($item['occupancy'], 100) }}%"></div>
+                        </div>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+    @endif
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">

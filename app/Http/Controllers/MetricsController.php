@@ -22,11 +22,16 @@ class MetricsController extends Controller
     public function export(Request $request)
     {
         $data = $this->metricsData($request);
+        $selectedEvent = $data['selectedEventId'] === 'all'
+            ? 'Todos los eventos'
+            : ($data['eventOptions']->firstWhere('id', $data['selectedEventId'])?->title ?? 'Evento seleccionado');
+
         $filePath = $this->buildWorkbook([
             'Resumen' => [
                 ['Campo', 'Valor'],
                 ['Desde', $data['from']],
                 ['Hasta', $data['to']],
+                ['Evento', $selectedEvent],
                 ['Boletas vendidas', $data['ticketsSold']],
                 ['Usuarios nuevos', $data['newUsers']],
                 ['Usuarios registrados', $data['totalUsers']],
@@ -51,12 +56,15 @@ class MetricsController extends Controller
                 $data['ticketsByWeek']->map(fn($row) => [$row['week'], $row['total']])->all()
             ),
             'Ocupacion por evento' => array_merge(
-                [['Evento', 'Capacidad', 'Vendidas', 'Ocupacion %']],
-                $data['occupancyData']->map(fn($row) => [
+                [['Evento', 'Fecha', 'Capacidad', 'Vendidas', 'Ingresos', 'Ocupacion %', 'Imagen']],
+                $data['eventMetrics']->map(fn($row) => [
                     $row['title'],
+                    $row['date'],
                     $row['capacity'],
                     $row['sold'],
+                    $row['revenue'],
                     $row['occupancy'],
+                    $row['poster_url'],
                 ])->all()
             ),
         ]);
@@ -72,15 +80,13 @@ class MetricsController extends Controller
     {
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
+        $selectedEventId = $request->input('event_id', 'all');
         $fromDate = Carbon::parse($from)->startOfDay();
         $toDate = Carbon::parse($to)->endOfDay();
 
-        $ticketsSold = Ticket::whereBetween('purchased_at', [$fromDate, $toDate])
-            ->whereRaw('UPPER(status) IN (?, ?, ?)', self::SOLD_STATUSES)
-            ->count();
-
         $newUsers = User::whereBetween('created_at', [$fromDate, $toDate])->count();
         $totalUsers = User::count();
+        $eventOptions = Event::orderByDesc('event_date')->get(['id', 'title', 'event_date']);
 
         $soldTickets = DB::table('tickets')
             ->leftJoin('events', 'events.id', '=', 'tickets.event_id')
@@ -92,6 +98,7 @@ class MetricsController extends Controller
             ->orderByDesc('tickets.purchased_at')
             ->select([
                 'tickets.id',
+                'tickets.event_id',
                 'tickets.purchased_at',
                 'tickets.status',
                 'events.title as event_title',
@@ -100,9 +107,14 @@ class MetricsController extends Controller
                 'area_seats.seat_number',
                 DB::raw('COALESCE(event_area.price, 0) as price'),
             ])
+            ->when($selectedEventId !== 'all', fn($query) => $query->where('tickets.event_id', $selectedEventId))
             ->get();
 
+        $ticketsSold = $soldTickets->count();
         $totalRevenue = (float) $soldTickets->sum('price');
+        $revenueByEvent = $soldTickets
+            ->groupBy('event_id')
+            ->map(fn($tickets) => (float) $tickets->sum('price'));
 
         $ticketsByWeek = Ticket::select(
                 DB::raw("DATE_TRUNC('week', purchased_at) as week"),
@@ -110,6 +122,7 @@ class MetricsController extends Controller
             )
             ->whereBetween('purchased_at', [$fromDate, $toDate])
             ->whereRaw('UPPER(status) IN (?, ?, ?)', self::SOLD_STATUSES)
+            ->when($selectedEventId !== 'all', fn($query) => $query->where('event_id', $selectedEventId))
             ->groupBy('week')
             ->orderBy('week')
             ->get()
@@ -118,15 +131,22 @@ class MetricsController extends Controller
                 'total' => $r->total,
             ]);
 
-        $occupancyData = Event::withCount([
-                'tickets as sold_count' => fn($q) => $q->whereRaw('UPPER(status) IN (?, ?, ?)', self::SOLD_STATUSES),
+        $eventMetrics = Event::withCount([
+                'tickets as sold_count' => fn($q) => $q
+                    ->whereBetween('purchased_at', [$fromDate, $toDate])
+                    ->whereRaw('UPPER(status) IN (?, ?, ?)', self::SOLD_STATUSES),
             ])
-            ->whereBetween('event_date', [$fromDate, $toDate])
+            ->when($selectedEventId !== 'all', fn($query) => $query->where('id', $selectedEventId))
+            ->orderByDesc('event_date')
             ->get()
             ->map(fn($e) => [
+                'id' => $e->id,
                 'title' => $e->title,
+                'date' => $e->event_date ? Carbon::parse($e->event_date)->format('Y-m-d H:i') : '',
+                'poster_url' => $e->poster_url,
                 'capacity' => $e->total_capacity,
                 'sold' => $e->sold_count,
+                'revenue' => $revenueByEvent->get($e->id, 0),
                 'occupancy' => $e->total_capacity > 0
                     ? round(($e->sold_count / $e->total_capacity) * 100, 1)
                     : 0,
@@ -139,8 +159,11 @@ class MetricsController extends Controller
             'totalRevenue' => $totalRevenue,
             'soldTickets' => $soldTickets,
             'ticketsByWeek' => $ticketsByWeek,
-            'occupancyData' => $occupancyData,
-            'avgOccupancy' => $occupancyData->avg('occupancy') ?? 0,
+            'occupancyData' => $eventMetrics,
+            'eventMetrics' => $eventMetrics,
+            'eventOptions' => $eventOptions,
+            'selectedEventId' => $selectedEventId,
+            'avgOccupancy' => $eventMetrics->avg('occupancy') ?? 0,
             'from' => $from,
             'to' => $to,
         ];
