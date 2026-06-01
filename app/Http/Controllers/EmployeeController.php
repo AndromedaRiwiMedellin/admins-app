@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $query = Employee::with('user', 'role', 'permissions')
             ->orderByDesc('created_at');
