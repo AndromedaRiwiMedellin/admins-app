@@ -13,6 +13,7 @@ class Event extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'id',
         'title',
         'description',
         'poster_url',

@@ -95,7 +95,7 @@ class EventController extends Controller
             return redirect()->route('events.index')
                 ->with('success', 'Evento creado correctamente.');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // En caso de error, volvemos atrás sin tumbar Nginx con un 500
             return redirect()->back()
                 ->withInput()
@@ -179,7 +179,7 @@ class EventController extends Controller
             return redirect()->route('events.index')
                 ->with('success', 'Evento actualizado correctamente.');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['error_db' => 'Error al actualizar el servidor: ' . $e->getMessage()]);
@@ -194,7 +194,7 @@ class EventController extends Controller
 
         try {
             $event->delete();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->route('events.index')
                 ->with('error', 'No se puede eliminar un evento con boletas vendidas.');
         }
@@ -231,7 +231,7 @@ class EventController extends Controller
                 Mail::to($favorite->user->email)
                     ->send(new EventUpdatedMail($event, $favorite->user));
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // El fallo del envío de correos no debe interrumpir ni romper el flujo principal
             logger('Error notificando usuarios: ' . $e->getMessage());
         }
