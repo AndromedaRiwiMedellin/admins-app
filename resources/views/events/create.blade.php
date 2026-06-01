@@ -15,6 +15,14 @@
     <form method="POST" action="{{ route('events.store') }}" enctype="multipart/form-data" class="flex flex-col gap-4">
         @csrf
 
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2.5">
+                @foreach($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
         {{-- Info principal --}}
         <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
@@ -29,76 +37,54 @@
 
             <div class="p-6 flex flex-col gap-5">
 
-                {{-- Título --}}
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5" for="title">Título del evento</label>
-                    <input
-                        type="text" id="title" name="title"
-                        value="{{ old('title') }}"
+                    <input type="text" id="title" name="title" value="{{ old('title') }}"
                         placeholder="Ej: La Traviata — Ópera en dos actos"
                         class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('title') ? 'border-red-400' : '' }}"
-                        required
-                    >
+                        required>
                     @error('title') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Descripción --}}
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5" for="description">Descripción</label>
-                    <textarea
-                        id="description" name="description"
-                        rows="3"
+                    <textarea id="description" name="description" rows="3"
                         placeholder="Describe el espectáculo, artistas, duración..."
                         class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition resize-none {{ $errors->has('description') ? 'border-red-400' : '' }}"
                     >{{ old('description') }}</textarea>
                     @error('description') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Fecha y hora --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="event_date">Fecha del evento</label>
-                        <input
-                            type="date" id="event_date" name="event_date"
-                            value="{{ old('event_date') }}"
+                        <input type="date" id="event_date" name="event_date" value="{{ old('event_date') }}"
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('event_date') ? 'border-red-400' : '' }}"
-                            required
-                        >
+                            required>
                         @error('event_date') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="event_time">Hora</label>
-                        <input
-                            type="time" id="event_time" name="event_time"
-                            value="{{ old('event_time') }}"
+                        <input type="time" id="event_time" name="event_time" value="{{ old('event_time') }}"
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('event_time') ? 'border-red-400' : '' }}"
-                            required
-                        >
+                            required>
                         @error('event_time') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                {{-- Venue y capacidad --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="venue">Sala / Escenario</label>
-                        <input
-                            type="text" id="venue" name="venue"
-                            value="{{ old('venue') }}"
+                        <input type="text" id="venue" name="venue" value="{{ old('venue') }}"
                             placeholder="Ej: Sala principal"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition"
-                        >
+                            class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="capacity">Capacidad total</label>
-                        <input
-                            type="number" id="capacity" name="capacity"
-                            value="{{ old('capacity') }}"
-                            placeholder="Ej: 450"
-                            min="1"
+                        <input type="number" id="capacity" name="capacity" value="{{ old('capacity') }}"
+                            placeholder="Ej: 450" min="1"
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('capacity') ? 'border-red-400' : '' }}"
-                            required
-                        >
+                            required>
                         @error('capacity') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -120,47 +106,67 @@
 
             <div class="p-6 flex flex-col gap-5">
 
-                {{-- Precio base --}}
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5" for="base_price">Precio base (COP)</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                        <input
-                            type="number" id="base_price" name="base_price"
-                            value="{{ old('base_price') }}"
-                            placeholder="0"
-                            min="0"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-lg pl-7 pr-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('base_price') ? 'border-red-400' : '' }}"
-                            required
-                        >
-                    </div>
-                    @error('base_price') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Apertura y cierre de venta --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="sale_start">Apertura de venta</label>
-                        <input
-                            type="datetime-local" id="sale_start" name="sale_start"
-                            value="{{ old('sale_start') }}"
+                        <input type="datetime-local" id="sale_start" name="sale_start" value="{{ old('sale_start') }}"
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('sale_start') ? 'border-red-400' : '' }}"
-                            required
-                        >
+                            required>
                         @error('sale_start') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1.5" for="sale_end">Cierre de venta</label>
-                        <input
-                            type="datetime-local" id="sale_end" name="sale_end"
-                            value="{{ old('sale_end') }}"
+                        <input type="datetime-local" id="sale_end" name="sale_end" value="{{ old('sale_end') }}"
                             class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#009990] focus:bg-white transition {{ $errors->has('sale_end') ? 'border-red-400' : '' }}"
-                            required
-                        >
+                            required>
                         @error('sale_end') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        {{-- Áreas del evento --}}
+        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-[#074799]/08 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-[#074799]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-medium text-gray-800">Áreas del evento</h2>
+                        <p class="text-xs text-gray-400">Define las zonas, precios y capacidades</p>
+                    </div>
+                </div>
+                <button type="button" id="add-area"
+                    class="text-xs text-[#009990] hover:text-[#007a74] border border-[#009990]/30 hover:border-[#009990] px-3 py-1.5 rounded-lg transition">
+                    + Agregar área
+                </button>
+            </div>
+
+            <div class="p-6 flex flex-col gap-3" id="areas-container">
+                <div class="area-row grid grid-cols-4 gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre del área</label>
+                        <input type="text" name="areas[0][area_name]" placeholder="Ej: General, VIP"
+                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Precio (COP)</label>
+                        <input type="number" name="areas[0][price]" placeholder="0" min="0"
+                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Capacidad</label>
+                        <input type="number" name="areas[0][capacity]" placeholder="0" min="1"
+                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1.5">Descripción</label>
+                        <input type="text" name="areas[0][description]" placeholder="Opcional"
+                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -189,19 +195,6 @@
             </div>
         </div>
 
-        {{-- Estado --}}
-        <div class="bg-white border border-gray-100 rounded-xl p-5 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-700">Publicar evento</p>
-                <p class="text-xs text-gray-400 mt-0.5">Visible en la cartelera pública al guardar</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="hidden" name="status" value="draft">
-                <input type="checkbox" name="status" value="active" {{ old('status') === 'active' ? 'checked' : '' }} class="sr-only peer">
-                <div class="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#009990] transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition peer-checked:after:translate-x-5"></div>
-            </label>
-        </div>
-
         {{-- Botones --}}
         <div class="flex items-center justify-end gap-3">
             <a href="{{ route('events.index') }}"
@@ -225,6 +218,39 @@ document.getElementById('poster').addEventListener('change', function() {
         document.getElementById('poster-name').textContent = name;
         document.getElementById('poster-name').classList.remove('hidden');
     }
+});
+
+let areaIndex = 1;
+document.getElementById('add-area').addEventListener('click', function() {
+    const container = document.getElementById('areas-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'area-row grid grid-cols-4 gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl relative';
+    newRow.innerHTML = `
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre del área</label>
+            <input type="text" name="areas[${areaIndex}][area_name]" placeholder="Ej: General, VIP"
+                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Precio (COP)</label>
+            <input type="number" name="areas[${areaIndex}][price]" placeholder="0" min="0"
+                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Capacidad</label>
+            <input type="number" name="areas[${areaIndex}][capacity]" placeholder="0" min="1"
+                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Descripción</label>
+            <input type="text" name="areas[${areaIndex}][description]" placeholder="Opcional"
+                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-[#009990] transition">
+        </div>
+        <button type="button" onclick="this.parentElement.remove()"
+            class="absolute top-2 right-2 text-red-400 hover:text-red-600 text-xs">✕</button>
+    `;
+    container.appendChild(newRow);
+    areaIndex++;
 });
 </script>
 @endpush

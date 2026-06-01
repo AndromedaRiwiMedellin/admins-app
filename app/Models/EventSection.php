@@ -6,17 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventSection extends Model
 {
-    protected $table = 'event_sections';
+    protected $table = 'event_area';
 
-    public $incrementing = false;
-    protected $keyType = 'string';
+    public $incrementing = true;
+    protected $keyType = 'int';
     public $timestamps = false;
 
     protected $fillable = [
         'event_id',
-        'section_name',
+        'area_name',
         'price',
         'capacity',
+        'description',
     ];
 
     protected $casts = [

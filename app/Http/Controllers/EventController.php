@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventSection;
 use App\Models\Favorite;
 use App\Models\Notification;
 use App\Mail\EventUpdatedMail;
@@ -36,14 +37,19 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'event_date'  => 'required|date',
-            'event_time'  => 'required',
-            'sale_start'  => 'required|date',
-            'sale_end'    => 'required|date|after:sale_start',
-            'capacity'    => 'required|integer|min:1',
-            'poster'      => 'nullable|image|max:2048',
+            'title'               => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'event_date'          => 'required|date',
+            'event_time'          => 'required',
+            'sale_start'          => 'required|date',
+            'sale_end'            => 'required|date|after:sale_start',
+            'capacity'            => 'required|integer|min:1',
+            'poster'              => 'nullable|image|max:2048',
+            'areas'               => 'nullable|array',
+            'areas.*.area_name'   => 'required_with:areas|string|max:100',
+            'areas.*.price'       => 'required_with:areas|numeric|min:0',
+            'areas.*.capacity'    => 'required_with:areas|integer|min:1',
+            'areas.*.description' => 'nullable|string',
         ]);
 
         $posterUrl = null;
@@ -53,7 +59,7 @@ class EventController extends Controller
 
         $employee = auth()->user()->employee;
 
-        Event::create([
+        $event = Event::create([
             'id'             => Str::uuid(),
             'title'          => $validated['title'],
             'description'    => $validated['description'] ?? null,
@@ -66,26 +72,45 @@ class EventController extends Controller
             'created_at'     => now(),
         ]);
 
+        // Guardar áreas
+        if (!empty($validated['areas'])) {
+            foreach ($validated['areas'] as $area) {
+                EventSection::create([
+                    'event_id'    => $event->id,
+                    'area_name'   => $area['area_name'],
+                    'price'       => $area['price'],
+                    'capacity'    => $area['capacity'],
+                    'description' => $area['description'] ?? null,
+                ]);
+            }
+        }
+
         return redirect()->route('events.index')
             ->with('success', 'Evento creado correctamente.');
     }
 
     public function edit(Event $event)
     {
+        $event->load('sections');
         return view('events.edit', compact('event'));
     }
 
     public function update(Request $request, Event $event)
     {
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'event_date'  => 'required|date',
-            'event_time'  => 'nullable',
-            'sale_start'  => 'required|date',
-            'sale_end'    => 'required|date|after:sale_start',
-            'capacity'    => 'required|integer|min:1',
-            'poster'      => 'nullable|image|max:2048',
+            'title'               => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'event_date'          => 'required|date',
+            'event_time'          => 'nullable',
+            'sale_start'          => 'required|date',
+            'sale_end'            => 'required|date|after:sale_start',
+            'capacity'            => 'required|integer|min:1',
+            'poster'              => 'nullable|image|max:2048',
+            'areas'               => 'nullable|array',
+            'areas.*.area_name'   => 'required_with:areas|string|max:100',
+            'areas.*.price'       => 'required_with:areas|numeric|min:0',
+            'areas.*.capacity'    => 'required_with:areas|integer|min:1',
+            'areas.*.description' => 'nullable|string',
         ]);
 
         $changed = $event->title !== $validated['title'] ||
@@ -115,6 +140,20 @@ class EventController extends Controller
             'total_capacity' => $validated['capacity'],
             'poster_url'     => $posterUrl,
         ]);
+
+        // Actualizar áreas — borrar las viejas y crear las nuevas
+        if (!empty($validated['areas'])) {
+            $event->sections()->delete();
+            foreach ($validated['areas'] as $area) {
+                EventSection::create([
+                    'event_id'    => $event->id,
+                    'area_name'   => $area['area_name'],
+                    'price'       => $area['price'],
+                    'capacity'    => $area['capacity'],
+                    'description' => $area['description'] ?? null,
+                ]);
+            }
+        }
 
         if ($changed) {
             $this->notifyFavoriteUsers($event);
