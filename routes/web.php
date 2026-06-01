@@ -34,5 +34,6 @@ Route::middleware('admin')->group(function () {
 
     // Métricas
     Route::get('/metrics', [MetricsController::class, 'index'])->name('metrics.index');
+    Route::get('/metrics/export', [MetricsController::class, 'export'])->name('metrics.export');
 
 });

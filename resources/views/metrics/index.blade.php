@@ -17,6 +17,11 @@
             Aplicar
         </button>
     </form>
+    <a href="{{ route('metrics.export', ['from' => $from, 'to' => $to]) }}"
+       class="bg-white hover:bg-gray-50 text-[#001A6E] border border-white/70 text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Excel
+    </a>
 @endsection
 
 @section('content')
